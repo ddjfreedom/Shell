@@ -1,0 +1,7 @@
+*~
+*.o
+lex.yy.c
+lex.yy.h
+shell
+.deps
+Makefile

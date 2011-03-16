@@ -1,0 +1,24 @@
+;; Object 		Shell
+;; EDE project file.
+(ede-proj-project "		Shell"
+  :name "		Shell"
+  :file "Project.ede"
+  :targets (list 
+   (ede-proj-target-makefile-program "shell"
+    :name "shell"
+    :path ""
+    :source '("main.c" "lex.yy.c" "parse.c" "type.c" "redirect.c")
+    :auxsource '("type.h" "parse.h" "redirect.h")
+    :compiler 'ede-gcc-compiler
+    :linker 'ede-cc-linker
+    :configuration-variables 'nil
+    :rules (list 
+     (ede-makefile-rule "Custom-new"
+      :target "lex.yy.c"
+      :dependencies "lex.l"
+      :rules '("flex --header-file=lex.yy.h lex.l")
+      )
+     )
+    )
+   )
+  )
