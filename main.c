@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
   cmd **cmds;
   //char *buf = malloc(BUFMAXSIZE * sizeof(char));
   char *buf;
+  dir_init();
   while (buf = readline(getprompt())) {
     if (*buf)
       add_history(buf);

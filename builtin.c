@@ -6,8 +6,9 @@
 #include <unistd.h>
 #include "builtin.h"
 
-const char *builtin_list[] = {"cd", "pwd", "exit"};
-builtin_cmd *builtins[] = {&cd, &pwd, &sh_exit};
+int BUILTIN_N = 5;
+const char *builtin_list[] = {"cd", "pwd", "exit", "pushd", "popd"};
+builtin_cmd *builtins[] = {&cd, &pwd, &sh_exit, &pushd, &popd};
 
 void sh_exit(cmd *command)
 {
@@ -44,15 +45,15 @@ char *sh_getcwd()
       free(s);
       return NULL;
     }
-  if (s && (ptr = strstr(s, home))) {
-    int i;
-    ptr += strlen(home);
-    new_s = malloc((strlen(ptr) + 2) * sizeof(char));
-    new_s[0] = '~';
-    new_s[1] = '\0';
-    strcat(new_s, ptr);
-    free(s);
-    return new_s;
-  }
+  /* if (s && (ptr = strstr(s, home))) { */
+  /*   int i; */
+  /*   ptr += strlen(home); */
+  /*   new_s = malloc((strlen(ptr) + 2) * sizeof(char)); */
+  /*   new_s[0] = '~'; */
+  /*   new_s[1] = '\0'; */
+  /*   strcat(new_s, ptr); */
+  /*   free(s); */
+  /*   return new_s; */
+  /* } */
   return s;
 }
