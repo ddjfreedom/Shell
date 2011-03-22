@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "type.h"
 
 void cmd_init(cmd *cmdp)
@@ -24,19 +25,39 @@ void cmd_init(cmd *cmdp)
 
 void cmd_addarg(cmd *cmdp, const char *arg)
 {
+  int i;
   if (cmdp->next == cmdp->size - 1) {
     cmdp->size *= 2;
     cmdp->argv = realloc(cmdp->argv, cmdp->size * sizeof(char *));
+    for (i = cmdp->next; i < cmdp->size; ++i)
+      cmdp->argv[i] = NULL;
   }
   cmdp->argv[cmdp->next] = malloc((strlen(arg)+1) * sizeof(char));
   strcpy(cmdp->argv[cmdp->next++], arg);
 }
 
-void cmd_redirect(cmd *cmdp, int fd, redirectMode mode, const char *path)
+void cmd_redirect(cmd *cmdp, int fd, elementType type, const char *path)
 {
+  int i;
+  redirectMode mode;
+  if (fd < 0) {
+    switch (type) {
+    case IN_RED: fd = STDIN_FILENO; mode = RD; break;
+    case OUT_RED: fd = STDOUT_FILENO; mode = WR; break;
+    case OUT_APPEND: fd = STDOUT_FILENO; mode = WR_APPEND; break;
+    case OUT_ERR_RED: fd = -1; mode = WR; break;
+    case OUT_ERR_APPEND: fd = -1; mode = WR_APPEND; break;
+    case FD_IN_RED: mode = RD; break;
+    case FD_OUT_RED: mode = WR; break;
+    case FD_APPEND: mode = WR_APPEND; break;
+    default: fprintf(stderr, "shell: Unknown redirection type\n"); exit(127);
+    }
+  }
   if (cmdp->rd_next == cmdp->rd_size) {
     cmdp->size *= 2;
     cmdp->rds = realloc(cmdp->rds, cmdp->rd_size * sizeof(redirection *));
+    for (i = cmdp->rd_next; i < cmdp->rd_size; ++i)
+      cmdp->rds[i] = NULL;
   }
   cmdp->rds[cmdp->rd_next] = malloc(sizeof(redirection));
   cmdp->rds[cmdp->rd_next]->fd = fd;
@@ -44,7 +65,6 @@ void cmd_redirect(cmd *cmdp, int fd, redirectMode mode, const char *path)
   strcpy(cmdp->rds[cmdp->rd_next]->filenam, path);
   cmdp->rds[cmdp->rd_next]->mode = mode;
   cmdp->rd_next++;
-  //printf("end cmd redirect\n");
 }
 
 void cmd_set_bg(cmd *cmdp)

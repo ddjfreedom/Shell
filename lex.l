@@ -2,17 +2,25 @@
 #include "type.h"
 #include "stdio.h"
 #include "string.h"
+void lex_reset();
 %}  
 
 %option noyywrap
 WS [ \t\n]
-VALIDCHS [[:alnum:]+\-/.&]
+VALIDCHS [[:alnum:]+\-/.&~]
 %%
 
-{VALIDCHS}+ { return STRING; }
+  int str_count = 0;
+
+({VALIDCHS}|\\\ )+ {
+  if (str_count++)
+      return STRING;
+    else
+      return CMD;
+  }
 {WS}+ /* eat up white spaces */
-; { return SEMICOLON; }
-\| { return PIPE; }
+; { str_count = 0; return SEMICOLON; }
+\| { str_count = 0; return PIPE; }
   /* IO redirection */
 \< { return IN_RED; }
 \> { return OUT_RED; }
@@ -24,8 +32,8 @@ VALIDCHS [[:alnum:]+\-/.&]
 [[:digit:]]+\< { return FD_IN_RED; }
   /* background */
 &{WS}*$ { return BACKGROUND; }
-
 %%
+
 /*
 #define MAXSIZE 200
 int main(int argc, const char *argv[])

@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <readline/readline.h>
 #include "type.h"
 #include "parse.h"
 #include "redirect.h"
@@ -11,24 +13,32 @@
 #define INIT_SIZE 5
 #define BUFMAXSIZE 200
 
+int dir_changed = 1;
+char *PS1 = "\\u \\w$ ";
 int cmds_init(cmd **cmds, int size);
 void print(cmd **cmds, int size);
 int exec_cmd(cmd *command);
-int create_pipes(int num, int **fds);
+char *getprompt();
+
 int main(int argc, char *argv[])
 {
   int count, i;
   cmd **cmds;
-  char *buf = malloc(BUFMAXSIZE * sizeof(char));
-  while (fgets(buf, BUFMAXSIZE, stdin) != NULL) {
+  //char *buf = malloc(BUFMAXSIZE * sizeof(char));
+  char *buf;
+  while (buf = readline(getprompt())) {
+    if (*buf)
+      add_history(buf);
     cmds = malloc(INIT_SIZE * sizeof(cmd *));
     cmds_init(cmds, INIT_SIZE);
     count = parse(buf, cmds, INIT_SIZE);
     //print(cmds, count);
-    for (i = 0; i < count; ++i)
-      exec_cmd(cmds[i]);
+    if (count != -1)
+      for (i = 0; i < count; ++i)
+        exec_cmd(cmds[i]);
     for (i = 0; i < count; ++i)
       cmd_dealloc(cmds[i]);
+    free(buf);
   }
   return 0;
 }
@@ -78,26 +88,61 @@ int exec_cmd(cmd *command)
   }
   waitpid(pids[0], &status, 0);
   free(pids);
-  /* if ((pid = fork()) < 0) { */
-  /*   fputs("fork error\n", stderr); */
-  /*   exit(127); */
-  /* } else if (pid == 0) { // child process */
-  /*   redirect(command); */
-  /*   execvp(command->argv[0], command->argv); */
-  /*   fprintf(stderr, "Unknown command: %s\n", command->argv[0]); */
-  /*   exit(127); */
-  /* } else { */
-  /*   waitpid(pid, &status, 0); */
-  /* } */
   return status;
 }
 
-int create_pipes(int num, int **fds)
+char *getprompt()
 {
-  int i;
-  for (i = 0; i < num; ++i)
-    if (pipe(fds[i]) < 0)
-      return -1;
+  static char *prompt = NULL;
+  static int len = 0;
+  static int default_len = 30;
+  if (dir_changed) {
+    int i, j;
+    char *tmp;
+    int allocated = 0;
+    int path_len = 100;
+    dir_changed = 0;
+    free(prompt);
+    prompt = malloc((len = default_len) * sizeof(char));
+    for (i = 0, j = 0; i < strlen(PS1); ++i) {
+      if (PS1[i] == '\\') {
+        switch (PS1[++i]) {
+        case 'u':
+          tmp = getlogin(); allocated = 0; break;
+        case 'w':
+          tmp = malloc(path_len * sizeof(char));
+          errno = 0;
+          allocated = 1;
+          while (!getcwd(tmp, path_len)) {
+            if (errno == ERANGE) {
+              path_len *= 2;
+              tmp = realloc(tmp, path_len);
+              errno = 0;
+            }
+          }
+          break;
+        default:
+          fprintf(stderr, "shell: Unknown PS1: %s\n", PS1); exit(127);
+        }
+        prompt[j] = '\0';
+        j += strlen(tmp);
+        if (j >= len) {
+          len *= 2;
+          prompt = realloc(prompt, len * sizeof(char));
+        }
+        strcat(prompt, tmp);
+        if (allocated) free(tmp);
+      } else {
+        if (j == len-1) {
+          len *= 2;
+          prompt = realloc(prompt, len * sizeof(char));
+        }
+        prompt[j++] = PS1[i];
+      }
+    }
+    prompt[j] = '\0';
+  }
+  return prompt;
 }
 
 void print(cmd **cmds, int size)

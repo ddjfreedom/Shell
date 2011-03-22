@@ -19,6 +19,7 @@
       :rules '("flex --header-file=lex.yy.h lex.l")
       )
      )
+    :ldlibs '("readline")
     )
    )
   )
