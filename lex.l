@@ -2,17 +2,16 @@
 #include "type.h"
 #include "stdio.h"
 #include "string.h"
-void lex_reset();
 %}  
 
 %option noyywrap
 WS [ \t\n]
-VALIDCHS [[:alnum:]+\-/.&~]
+VALIDCHS [[:alnum:]+\-/.~]
 %%
 
   int str_count = 0;
 
-({VALIDCHS}|\\\ )+ {
+({VALIDCHS}|\\\ |\\&)+|(&[[:digit:]]+) {
   if (str_count++)
       return STRING;
     else
@@ -32,6 +31,8 @@ VALIDCHS [[:alnum:]+\-/.&~]
 [[:digit:]]+\< { return FD_IN_RED; }
   /* background */
 &{WS}*$ { return BACKGROUND; }
+
+. { fprintf(stderr, "lex: Unknown char: %s\n", yytext); }
 %%
 
 /*

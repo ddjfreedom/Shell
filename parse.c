@@ -34,7 +34,7 @@ int parse(const char *input, cmd *cmds[], int size)
       valid_pipe = 1;
     case STRING:
       str = handle_escaped_chs(yytext);
-      fprintf(stderr, "%s %s\n", yytext, str);
+      //fprintf(stderr, "%s %s\n", yytext, str);
       cmd_addarg(cmds[cmd_count], str); break;
     case FD_IN_RED: case FD_OUT_RED: case FD_APPEND:
       fd = get_fd(yytext, type);
@@ -75,7 +75,7 @@ char *handle_escaped_chs(const char *input)
   for (i = 0, j = 0; j < strlen(input) && !error; ++i, ++j) {
     if (input[j] == '\\') {
       switch (input[++j]) {
-      case ' ': case '*': case '?': case '|':
+      case ' ': case '*': case '?': case '|': case '&':
         tmp[i] = input[j]; break;
       default:
         fprintf(stderr, "shell: Unknown escaped character: \\%c", input[j]);

@@ -9,6 +9,7 @@
 #include "type.h"
 #include "parse.h"
 #include "redirect.h"
+#include "builtin.h"
 
 #define INIT_SIZE 5
 #define BUFMAXSIZE 200
@@ -22,7 +23,8 @@ char *getprompt();
 
 int main(int argc, char *argv[])
 {
-  int count, i;
+  int count, i, tmp, j;
+  int builtin_f;
   cmd **cmds;
   //char *buf = malloc(BUFMAXSIZE * sizeof(char));
   char *buf;
@@ -31,11 +33,23 @@ int main(int argc, char *argv[])
       add_history(buf);
     cmds = malloc(INIT_SIZE * sizeof(cmd *));
     cmds_init(cmds, INIT_SIZE);
+    tmp = strlen(buf);
+    realloc(buf, (tmp + 2) * sizeof(char));
+    buf[tmp] = '\n'; buf[tmp+1] = '\0';
     count = parse(buf, cmds, INIT_SIZE);
     //print(cmds, count);
     if (count != -1)
-      for (i = 0; i < count; ++i)
-        exec_cmd(cmds[i]);
+      for (i = 0; i < count; ++i) {
+        builtin_f = 0;
+        for (j = 0; j < BUILTIN_N; ++j)
+          if (strcmp(cmds[i]->argv[0], builtin_list[j]) == 0) {
+            (*builtins[j])(cmds[i]);
+            builtin_f = 1;
+            break;
+          }
+        if (!builtin_f)
+          exec_cmd(cmds[i]);
+      }
     for (i = 0; i < count; ++i)
       cmd_dealloc(cmds[i]);
     free(buf);
@@ -64,11 +78,11 @@ int exec_cmd(cmd *command)
   for (cmdp = command, i = 0; i < command->p_len; cmdp = cmdp->cmd_next, i++) {
     status = pipe(fds[i % 2]);
     if (status < 0) {
-      fputs("shell: pipe error\n", stderr);
+      perror("shell: pipe");
       exit(127);
     }
     if ((pids[i] = fork()) < 0) {
-      fputs("shell: fork error\n", stderr);
+      perror("shell: fork");
       exit(127);
     } else if (pids[i] == 0) { // child process
       if (i != command->p_len-1) // not the first command in pipeline, redirect stdin
@@ -80,7 +94,8 @@ int exec_cmd(cmd *command)
       redirect(cmdp);
       //fprintf(stderr, "exec: %d %d %s\n", i, (int)cmdp, cmdp->argv[0]);
       execvp(cmdp->argv[0], cmdp->argv);
-      fprintf(stderr, "Unknown command: %s\n", cmdp->argv[0]);
+      fputs("shell: ", stderr);
+      perror(cmdp->argv[0]);
       exit(127);
     } else {
       close(fds[!(i%2)][0]); close(fds[!(i%2)][1]);
@@ -110,17 +125,7 @@ char *getprompt()
         case 'u':
           tmp = getlogin(); allocated = 0; break;
         case 'w':
-          tmp = malloc(path_len * sizeof(char));
-          errno = 0;
-          allocated = 1;
-          while (!getcwd(tmp, path_len)) {
-            if (errno == ERANGE) {
-              path_len *= 2;
-              tmp = realloc(tmp, path_len);
-              errno = 0;
-            }
-          }
-          break;
+          tmp = sh_getcwd(); allocated = 1; break;
         default:
           fprintf(stderr, "shell: Unknown PS1: %s\n", PS1); exit(127);
         }

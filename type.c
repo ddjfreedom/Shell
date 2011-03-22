@@ -40,18 +40,16 @@ void cmd_redirect(cmd *cmdp, int fd, elementType type, const char *path)
 {
   int i;
   redirectMode mode;
-  if (fd < 0) {
-    switch (type) {
-    case IN_RED: fd = STDIN_FILENO; mode = RD; break;
-    case OUT_RED: fd = STDOUT_FILENO; mode = WR; break;
-    case OUT_APPEND: fd = STDOUT_FILENO; mode = WR_APPEND; break;
-    case OUT_ERR_RED: fd = -1; mode = WR; break;
-    case OUT_ERR_APPEND: fd = -1; mode = WR_APPEND; break;
-    case FD_IN_RED: mode = RD; break;
-    case FD_OUT_RED: mode = WR; break;
-    case FD_APPEND: mode = WR_APPEND; break;
-    default: fprintf(stderr, "shell: Unknown redirection type\n"); exit(127);
-    }
+  switch (type) {
+  case IN_RED: fd = STDIN_FILENO; mode = RD; break;
+  case OUT_RED: fd = STDOUT_FILENO; mode = WR; break;
+  case OUT_APPEND: fd = STDOUT_FILENO; mode = WR_APPEND; break;
+  case OUT_ERR_RED: fd = -1; mode = WR; break;
+  case OUT_ERR_APPEND: fd = -1; mode = WR_APPEND; break;
+  case FD_IN_RED: mode = RD; break;
+  case FD_OUT_RED: mode = WR; break;
+  case FD_APPEND: mode = WR_APPEND; break;
+  default: fprintf(stderr, "shell: Unknown redirection type\n"); exit(127);
   }
   if (cmdp->rd_next == cmdp->rd_size) {
     cmdp->size *= 2;
