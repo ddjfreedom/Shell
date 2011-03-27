@@ -57,4 +57,5 @@ typedef struct alias_t {
   char *action;
   struct alias_t *next;
 } alias_t;
+
 #endif

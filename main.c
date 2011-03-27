@@ -15,7 +15,7 @@
 #define BUFMAXSIZE 200
 
 int dir_changed = 1;
-char *PS1 = "\\u \\w$ ";
+char *PS1 = "\\u:\\w$ ";
 int cmds_init(cmd **cmds, int size);
 void print(cmd **cmds, int size);
 int exec_cmd(cmd *command);
@@ -118,8 +118,7 @@ char *getprompt()
     int allocated = 0;
     int path_len = 100;
     dir_changed = 0;
-    free(prompt);
-    prompt = malloc((len = default_len) * sizeof(char));
+    prompt = realloc(prompt, (len = default_len) * sizeof(char));
     for (i = 0, j = 0; i < strlen(PS1); ++i) {
       if (PS1[i] == '\\') {
         switch (PS1[++i]) {

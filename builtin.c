@@ -6,9 +6,23 @@
 #include <unistd.h>
 #include "builtin.h"
 
-int BUILTIN_N = 5;
-const char *builtin_list[] = {"cd", "pwd", "exit", "pushd", "popd"};
-builtin_cmd *builtins[] = {&cd, &pwd, &sh_exit, &pushd, &popd};
+int BUILTIN_N = 6;
+const char *builtin_list[] = {
+  "cd",
+  "pwd",
+  "dirs",
+  "pushd",
+  "popd",
+  "exit"
+};
+builtin_cmd *builtins[] = {
+  cd, 
+  pwd,
+  dirs,
+  pushd,
+  popd,
+  sh_exit
+};
 
 void sh_exit(cmd *command)
 {
@@ -31,29 +45,11 @@ void *enlarge_ptr(void *ptr, int *size, int type_size)
   return realloc(ptr, *size * type_size);
 }
 
-char *sh_getcwd()
+int sh_strtoi(char *s, int *err)
 {
-  int size = 20;
-  char *s = malloc(size * sizeof(char));
-  char *home = getenv("HOME");
-  char *ptr, *new_s = NULL;
-  while (getcwd(s, size) == NULL)
-    if (errno = ERANGE) {
-      s = enlarge_ptr(s, &size, sizeof(char));
-    } else {
-      perror("shell");
-      free(s);
-      return NULL;
-    }
-  /* if (s && (ptr = strstr(s, home))) { */
-  /*   int i; */
-  /*   ptr += strlen(home); */
-  /*   new_s = malloc((strlen(ptr) + 2) * sizeof(char)); */
-  /*   new_s[0] = '~'; */
-  /*   new_s[1] = '\0'; */
-  /*   strcat(new_s, ptr); */
-  /*   free(s); */
-  /*   return new_s; */
-  /* } */
-  return s;
+  char *endptr;
+  int result;
+  result = strtol(s, &endptr, 10);
+  *err = (*endptr) ? -1 : 0;
+  return result;
 }

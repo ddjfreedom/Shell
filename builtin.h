@@ -21,4 +21,5 @@ extern builtin_cmd *builtins[];
 // helper funcs
 void *enlarge_ptr(void *ptr, int *size, int type_size);
 char *sh_getcwd();
+int sh_strtoi(char *s, int *err);
 #endif
