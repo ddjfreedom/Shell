@@ -5,3 +5,9 @@ lex.yy.h
 shell
 .deps
 Makefile
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+TODO
+
