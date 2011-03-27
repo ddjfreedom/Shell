@@ -6,13 +6,20 @@
 
 %option noyywrap
 WS [ \t\n]
-VALIDCHS [[:alnum:]+\-/.&]
+VALIDCHS [[:alnum:]+\-/.~]
 %%
 
-{VALIDCHS}+ { return STRING; }
+  int str_count = 0;
+
+({VALIDCHS}|\\\ |\\&)+|(&[[:digit:]]+) {
+  if (str_count++)
+      return STRING;
+    else
+      return CMD;
+  }
 {WS}+ /* eat up white spaces */
-; { return SEMICOLON; }
-\| { return PIPE; }
+; { str_count = 0; return SEMICOLON; }
+\| { str_count = 0; return PIPE; }
   /* IO redirection */
 \< { return IN_RED; }
 \> { return OUT_RED; }
@@ -25,7 +32,9 @@ VALIDCHS [[:alnum:]+\-/.&]
   /* background */
 &{WS}*$ { return BACKGROUND; }
 
+. { fprintf(stderr, "lex: Unknown char: %s\n", yytext); }
 %%
+
 /*
 #define MAXSIZE 200
 int main(int argc, const char *argv[])

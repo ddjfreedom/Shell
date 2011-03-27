@@ -46,8 +46,16 @@ typedef struct cmd {
 
 void cmd_init(cmd *cmdp);
 void cmd_addarg(cmd *cmdp, const char *arg);
-void cmd_redirect(cmd *cmdp, int fd, redirectMode mode, const char *path);
+void cmd_redirect(cmd *cmdp, int fd, elementType mode, const char *path);
 void cmd_set_bg(cmd *cmdp);
 void cmd_dealloc(cmd *cmdp);
 void cmd_add_pcmd(cmd **cmdp);
+
+// alias alias="name"
+typedef struct alias_t {
+  char *name;
+  char *action;
+  struct alias_t *next;
+} alias_t;
+
 #endif
