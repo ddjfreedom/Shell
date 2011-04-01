@@ -58,4 +58,10 @@ typedef struct alias_t {
   struct alias_t *next;
 } alias_t;
 
+typedef struct bg_cmd {
+  int n;
+  pid_t pid;
+  char *cmdname;
+} bg_cmd;
+
 #endif

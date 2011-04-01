@@ -16,6 +16,7 @@
 
 int dir_changed = 1;
 char *PS1 = "\\u:\\w$ ";
+char *buf;
 int cmds_init(cmd **cmds, int size);
 void print(cmd **cmds, int size);
 int exec_cmd(cmd *command);
@@ -27,8 +28,7 @@ int main(int argc, char *argv[])
   int builtin_f;
   cmd **cmds;
   //char *buf = malloc(BUFMAXSIZE * sizeof(char));
-  char *buf;
-  dir_init();
+  sh_init();
   while (buf = readline(getprompt())) {
     if (*buf)
       add_history(buf);
@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     realloc(buf, (tmp + 2) * sizeof(char));
     buf[tmp] = '\n'; buf[tmp+1] = '\0';
     count = parse(buf, cmds, INIT_SIZE);
+    buf[tmp] = '\0';
     //print(cmds, count);
     if (count != -1)
       for (i = 0; i < count; ++i) {
@@ -51,6 +52,7 @@ int main(int argc, char *argv[])
         if (!builtin_f)
           exec_cmd(cmds[i]);
       }
+    jobctl_print_msgs();
     for (i = 0; i < count; ++i)
       cmd_dealloc(cmds[i]);
     free(buf);
@@ -102,7 +104,13 @@ int exec_cmd(cmd *command)
       close(fds[!(i%2)][0]); close(fds[!(i%2)][1]);
     }
   }
-  waitpid(pids[0], &status, 0);
+  //printf("pid: %d\n", pids[0]);
+  if (command->bg) {
+    jobctl_add_bg(pids[0], buf);
+  } else {
+    waitpid(pids[0], &status, 0);
+    //fprintf(stderr, "done waitpid\n");
+  }
   free(pids);
   return status;
 }

@@ -4,15 +4,18 @@
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #include "builtin.h"
 
-int BUILTIN_N = 6;
+int BUILTIN_N = 8;
 const char *builtin_list[] = {
   "cd",
   "pwd",
   "dirs",
   "pushd",
   "popd",
+  "jobs",
+  "kill",
   "exit"
 };
 builtin_cmd *builtins[] = {
@@ -21,24 +24,28 @@ builtin_cmd *builtins[] = {
   dirs,
   pushd,
   popd,
+  jobs,
+  sh_kill,
   sh_exit
 };
 
-void sh_exit(cmd *command)
+extern void dir_init();
+extern void jobctl_init();
+static void sig_chld(int signo);
+void sh_init()
 {
-  int rt_val = 0;
-  if (command->next > 1) {
-    char *ptr = NULL;
-    rt_val = strtol(command->argv[1], &ptr, 10);
-    if (*ptr) {
-      fprintf(stderr, "shell: exit: %s: numeric argument expected\n", command->argv[1]);
-      rt_val = 127;
-    }
-  }
-  //TODO: handle background processes
-  exit(rt_val);
+  dir_init();
+  jobctl_init();
+  signal(SIGCHLD, sig_chld);
 }
-
+static void sig_chld(int signo)
+{
+  pid_t pid;
+  while ((pid = waitpid(0, NULL, WNOHANG)) > 0) {
+    //fprintf(stderr, "sig_chld, pid: %d\n", pid);
+    jobctl_rm_bg(pid);
+  }
+}
 void *enlarge_ptr(void *ptr, int *size, int type_size)
 {
   (*size) *= 2;
