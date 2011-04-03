@@ -103,7 +103,7 @@ void popd(cmd *command)
   int err;
   int dir_chang_flag = 1;
   int from_end = 0;
-  int f[] = {0, 0};
+  int f[] = {0, 0}; // indicate whether two options have occurred
   char *dir;
   static char *help_msg = "popd: usage: popd [-n] [+N | -N]";
   if (!dir_stack->next->next) {

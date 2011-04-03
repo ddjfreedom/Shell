@@ -3,8 +3,8 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <readline/readline.h>
 #include "type.h"
 #include "parse.h"
@@ -88,6 +88,9 @@ int exec_cmd(cmd *command)
       perror("shell: fork");
       exit(127);
     } else if (pids[i] == 0) { // child process
+      signal(SIGTSTP, SIG_DFL);
+      signal(SIGINT, SIG_DFL);
+      signal(SIGCONT, SIG_DFL);
       if (i != command->p_len-1) // not the first command in pipeline, redirect stdin
         dup2(fds[i%2][0], STDIN_FILENO);
       if (i != 0) // not the last command in pipeline, redirect stdout
@@ -100,16 +103,15 @@ int exec_cmd(cmd *command)
       fputs("shell: ", stderr);
       perror(cmdp->argv[0]);
       exit(127);
-    } else {
+    } else { // parent process
       close(fds[!(i%2)][0]); close(fds[!(i%2)][1]);
     }
   }
   //printf("pid: %d\n", pids[0]);
   if (command->bg) {
-    jobctl_add_bg(pids[0], buf);
+    jobctl_add_job(pids[0], buf, JOBCTL_RUN, 1);
   } else {
-    waitpid(pids[0], &status, 0);
-    //fprintf(stderr, "done waitpid\n");
+    waitcmd(pids[0], buf);
   }
   free(pids);
   return status;
