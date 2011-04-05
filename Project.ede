@@ -7,7 +7,7 @@
    (ede-proj-target-makefile-program "shell"
     :name "shell"
     :path ""
-    :source '("main.c" "lex.yy.c" "parse.c" "type.c" "redirect.c" "cd.c" "builtin.c" "linked_list.c" "jobctl.c")
+    :source '("main.c" "lex.yy.c" "parse.c" "type.c" "redirect.c" "cd.c" "builtin.c" "linked_list.c" "jobctl.c" "help.c")
     :auxsource '("type.h" "parse.h" "redirect.h" "builtin.h" "perror.h" "linked_list.h")
     :compiler 'ede-gcc-compiler
     :linker 'ede-cc-linker

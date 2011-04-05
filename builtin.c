@@ -8,8 +8,9 @@
 #include <sys/wait.h>
 #include "builtin.h"
 
-int BUILTIN_N = 10;
+int BUILTIN_N = 11;
 const char *builtin_list[] = {
+  "help",
   "cd",
   "pwd",
   "dirs",
@@ -22,6 +23,7 @@ const char *builtin_list[] = {
   "exit"
 };
 builtin_cmd *builtins[] = {
+  sh_help,
   cd, 
   pwd,
   dirs,

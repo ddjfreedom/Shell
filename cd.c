@@ -72,7 +72,7 @@ void dirs(cmd *command)
 }
 void pushd(cmd *command)
 {
-  static char *help_msg = "pushd: usage: pushd [-n] [+N | -N | dir]";
+  static char *help_msg = "pushd: usage: pushd [dir]";
   if (command->next > 2) {
     fprintf(stderr, "%s\n", help_msg);
   } else if (command->next == 1) { // just pushd, switch the top two dirs in dir_stack
@@ -83,8 +83,8 @@ void pushd(cmd *command)
       dir = dir_stack->next;
       dir_stack->next = dir->next;
       dir->next = dir_stack->next->next;
-      dir_stack->next = dir;
-      sh_chdir((char *)dir->val);
+      dir_stack->next->next = dir;
+      sh_chdir((char *)dir_stack->next->val);
       print_dir_stack(stdout);
     }
   } else {
