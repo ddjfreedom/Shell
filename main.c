@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <readline/readline.h>
+#include <readline/history.h>
 #include "type.h"
 #include "parse.h"
 #include "redirect.h"
@@ -26,16 +27,30 @@ int main(int argc, char *argv[])
 {
   int count, i, tmp, j;
   int builtin_f;
+  int hist_expand_status;
   cmd **cmds;
-  //char *buf = malloc(BUFMAXSIZE * sizeof(char));
+  char *hist_tmp;
   sh_init();
+  using_history();
   while (buf = readline(getprompt())) {
+    if (buf[0] == '!') { // history expand
+      hist_expand_status = history_expand(buf, &hist_tmp);
+      if (hist_expand_status == 1) {
+        buf = realloc(buf, (strlen(hist_tmp)+1) * sizeof(char));
+        strcpy(buf, hist_tmp);
+      } else {
+        fprintf(stderr, "shell: %s: event not found\n", buf);
+        free(buf);
+        continue;
+      }
+    }
     if (*buf)
       add_history(buf);
+    
     cmds = malloc(INIT_SIZE * sizeof(cmd *));
     cmds_init(cmds, INIT_SIZE);
     tmp = strlen(buf);
-    realloc(buf, (tmp + 2) * sizeof(char));
+    buf = realloc(buf, (tmp + 2) * sizeof(char));
     buf[tmp] = '\n'; buf[tmp+1] = '\0';
     count = parse(buf, cmds, INIT_SIZE);
     buf[tmp] = '\0';

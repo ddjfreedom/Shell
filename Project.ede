@@ -11,7 +11,7 @@
     :auxsource '("type.h" "parse.h" "redirect.h" "builtin.h" "perror.h" "linked_list.h")
     :compiler 'ede-gcc-compiler
     :linker 'ede-cc-linker
-    :configuration-variables 'nil
+    :configuration-variables '(("C_INCLUDE_PATH=$(shell brew --prefix readline)/include/"))
     :rules (list 
      (ede-makefile-rule "Custom-new"
       :target "lex.yy.c"
@@ -19,6 +19,7 @@
       :rules '("flex --header-file=lex.yy.h lex.l")
       )
      )
+    :ldflags '("-L$(shell brew --prefix readline)/lib/")
     :ldlibs '("readline")
     )
    )
