@@ -51,11 +51,16 @@ void cmd_set_bg(cmd *cmdp);
 void cmd_dealloc(cmd *cmdp);
 void cmd_add_pcmd(cmd **cmdp);
 
-// alias alias="name"
-typedef struct alias_t {
-  char *name;
-  char *action;
-  struct alias_t *next;
-} alias_t;
-
+#define JOBCTL_RUN 0
+#define JOBCTL_STP 1
+#define JOBCTL_DONE 2
+#define JOBCTL_TERM 3
+typedef struct job {
+  int n; // job number
+  pid_t pid;
+  char *cmdname;
+	int status;
+	int bg;
+  struct job *next;
+} job;
 #endif

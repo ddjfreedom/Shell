@@ -11,7 +11,7 @@ VALIDCHS [[:alnum:]+\-/.~]
 
   int str_count = 0;
 
-({VALIDCHS}|\\\ |\\&)+|(&[[:digit:]]+) {
+({VALIDCHS}|\\\ |\\&)+|(&[[:digit:]]+)|(\%[[:digit:]]+) {
   if (str_count++)
       return STRING;
     else
